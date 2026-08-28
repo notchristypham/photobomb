@@ -3,22 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>PoP! Photo Bomb</title>
+<title>Detonate — Photo Bomb</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --cream:#FFFCF4;
-    --sky:#79C6E8;
-    --sky-soft:#CDEBF7;
-    --yellow:#FFCB3D;
-    --yellow-soft:#FFEBAE;
-    --coral:#E0394B;
-    --coral-soft:#FFC9CE;
-    --navy:#1B2E3D;
-    --ink-soft:#4B6572;
-    --shadow: 0 8px 22px rgba(27, 46, 61, 0.16);
-    --focus: 3px solid #1B2E3D;
+    --bg:#131010;
+    --bg-deep:#0b0a0a;
+    --panel:#1d1817;
+    --panel-edge:#3a2f2c;
+    --red:#D62839;
+    --red-dark:#7C1622;
+    --amber:#E8A33D;
+    --amber-dim:#B9822F;
+    --ash:#9A8F89;
+    --ink:#EFE7DE;
+    --ink-dim:#B8AFA9;
+    --shadow: 0 10px 28px rgba(0,0,0,0.55);
+    --focus: 3px solid var(--amber);
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
   html,body{margin:0;padding:0;}
@@ -27,17 +29,34 @@
     min-height:100dvh;
     display:flex;
     flex-direction:column;
-    background-color:var(--cream);
+    background-color:var(--bg);
     background-image:
-      radial-gradient(var(--sky-soft) 8px, transparent 9px),
-      radial-gradient(var(--yellow-soft) 6px, transparent 7px),
-      radial-gradient(var(--coral-soft) 5px, transparent 6px);
-    background-size: 110px 110px, 150px 150px, 90px 90px;
-    background-position: 0 0, 45px 65px, 20px 100px;
-    font-family:'Nunito', sans-serif;
-    color:var(--navy);
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.11'/%3E%3C/svg%3E"),
+      radial-gradient(ellipse 60% 40% at 15% 0%, rgba(214,40,57,0.16), transparent 60%),
+      radial-gradient(ellipse 50% 45% at 90% 100%, rgba(232,163,61,0.10), transparent 60%),
+      radial-gradient(ellipse 70% 50% at 50% 50%, rgba(0,0,0,0.4), transparent 70%);
+    background-size: 180px 180px, auto, auto, auto;
+    font-family:'Oswald', sans-serif;
+    color:var(--ink);
     overflow-x:hidden;
     position:relative;
+  }
+
+  .vignette{
+    position:fixed; inset:0; z-index:1; pointer-events:none;
+    background: radial-gradient(ellipse 85% 75% at 50% 40%, transparent 45%, rgba(0,0,0,0.62) 100%);
+  }
+  .grain{
+    position:fixed; inset:0; z-index:1; pointer-events:none;
+    opacity:0.5;
+    mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+    background-size:180px 180px;
+  }
+
+  @keyframes emberPulse{
+    0%,100%{ filter: drop-shadow(0 0 14px rgba(214,40,57,0.45)); }
+    50%{ filter: drop-shadow(0 0 22px rgba(232,163,61,0.6)); }
   }
 
   .sr-only{
@@ -54,9 +73,10 @@
   .ambient{position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden;}
   .ambient span{
     position:absolute;
-    width:10px; height:10px;
+    width:6px; height:6px;
     border-radius:50%;
-    opacity:0.45;
+    opacity:0.55;
+    filter: blur(0.3px);
     animation: float 10s ease-in-out infinite;
   }
   @keyframes float{
@@ -73,12 +93,16 @@
     font-size:clamp(2.6rem, 10vw, 3.4rem);
     line-height:1;
     margin:0;
+    filter: drop-shadow(0 0 14px rgba(214,40,57,0.45));
+    animation: emberPulse 3.4s ease-in-out infinite;
   }
   .tagline{
-    margin:0.6rem 0 0;
-    font-weight:700;
-    color:var(--ink-soft);
-    font-size:0.95rem;
+    margin:0.7rem 0 0;
+    font-weight:600;
+    color:var(--ash);
+    font-size:0.85rem;
+    text-transform:uppercase;
+    letter-spacing:0.14em;
   }
 
   main{
@@ -94,16 +118,21 @@
   }
 
   .panel{
-    background:#ffffff;
-    border-radius:32px;
+    background: linear-gradient(165deg, #241e1c 0%, #1a1513 60%, #150f0e 100%);
+    border:1px solid var(--panel-edge);
+    border-radius:14px;
     padding:1.9rem 1.5rem 2.1rem;
-    box-shadow: var(--shadow);
+    box-shadow:
+      var(--shadow),
+      inset 0 1px 0 rgba(255,255,255,0.05),
+      inset 0 -18px 30px -20px rgba(0,0,0,0.6);
   }
 
   .dropzone{
-    border:3px dashed var(--navy);
-    border-radius:24px;
-    background:var(--sky-soft);
+    border:3px dashed var(--amber);
+    border-radius:10px;
+    background: linear-gradient(165deg, #17130f 0%, #0d0a09 100%);
+    box-shadow: inset 0 3px 14px rgba(0,0,0,0.65), inset 0 0 0 1px rgba(232,163,61,0.06);
     padding:2.4rem 1.25rem;
     text-align:center;
     cursor:pointer;
@@ -112,19 +141,20 @@
   }
   .dropzone:hover{ transform: translateY(-2px); }
   .dropzone.dragover{
-    background:var(--yellow-soft);
-    border-color:var(--coral);
+    background: linear-gradient(165deg, #2a1416 0%, #150d0d 100%);
+    border-color:var(--red);
     transform: scale(1.01);
   }
-  .dropzone .icon{ font-size:2.4rem; display:block; margin-bottom:0.4rem; }
+  .dropzone .icon{ font-size:2.4rem; display:block; margin-bottom:0.5rem; filter: drop-shadow(0 0 10px rgba(232,163,61,0.4)); }
   .dropzone .primary{
-    font-family:'Baloo 2', sans-serif;
-    font-weight:700;
-    color:var(--navy);
-    font-size:1.15rem;
-    margin:0 0 0.3rem;
+    font-family:'Bungee', sans-serif;
+    font-weight:400;
+    color:var(--ink);
+    font-size:1.05rem;
+    letter-spacing:0.02em;
+    margin:0 0 0.4rem;
   }
-  .dropzone .secondary{ margin:0; font-size:0.9rem; font-weight:600; color:var(--ink-soft); }
+  .dropzone .secondary{ margin:0; font-size:0.85rem; font-weight:500; color:var(--ash); text-transform:uppercase; letter-spacing:0.08em; }
   #fileInput{ display:none; }
 
   .toolbar{
@@ -132,29 +162,31 @@
     margin-top:1.3rem; flex-wrap:wrap;
   }
   .btn{
-    font-family:'Baloo 2', sans-serif;
-    font-weight:700;
-    font-size:0.98rem;
-    border:2px solid transparent;
-    border-radius:999px;
+    font-family:'Oswald', sans-serif;
+    font-weight:600;
+    font-size:0.95rem;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    border:2px solid var(--red-dark);
+    border-radius:6px;
     padding:0.75rem 1.4rem;
     min-height:44px;
     cursor:pointer;
     touch-action:manipulation;
-    color:var(--navy);
-    background:var(--yellow);
-    box-shadow:0 5px 0 #C99012;
+    color:var(--ink);
+    background: linear-gradient(180deg, #EA5561 0%, var(--red) 45%, #B32332 100%);
+    box-shadow:0 5px 0 var(--red-dark), inset 0 1px 0 rgba(255,255,255,0.3), inset 0 -3px 6px rgba(0,0,0,0.25);
     transition: transform 0.08s ease, box-shadow 0.08s ease;
   }
-  .btn:active{ transform:translateY(3px); box-shadow:0 2px 0 #C99012; }
+  .btn:active{ transform:translateY(3px); box-shadow:0 2px 0 var(--red-dark), inset 0 1px 0 rgba(255,255,255,0.2); }
   .btn.ghost{
-    background:white;
-    color:var(--navy);
-    border-color:var(--navy);
-    box-shadow:0 5px 0 var(--sky-soft);
+    background: linear-gradient(180deg, #29231F 0%, var(--bg-deep) 100%);
+    color:var(--ash);
+    border-color:var(--panel-edge);
+    box-shadow:0 5px 0 #000, inset 0 1px 0 rgba(255,255,255,0.06);
   }
-  .btn.ghost:active{ box-shadow:0 2px 0 var(--sky-soft); }
-  .btn:disabled{ opacity:0.45; cursor:not-allowed; box-shadow:none; transform:none; }
+  .btn.ghost:active{ box-shadow:0 2px 0 #000; }
+  .btn:disabled{ opacity:0.4; cursor:not-allowed; box-shadow:none; transform:none; }
 
   .gallery{
     display:flex;
@@ -166,11 +198,11 @@
   .card{
     position:relative;
     width:132px;
-    background:#ffffff;
-    border:1px solid var(--sky-soft);
-    border-radius:18px;
+    background: linear-gradient(165deg, #221c1a 0%, #17130f 100%);
+    border:1px solid var(--panel-edge);
+    border-radius:10px;
     padding:0.45rem;
-    box-shadow:var(--shadow);
+    box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,0.05);
     transition: opacity .3s ease, transform .3s ease;
   }
   .card.leaving{ opacity:0; transform:scale(0.6) rotate(6deg); }
@@ -178,55 +210,62 @@
     width:100%;
     aspect-ratio:1/1;
     object-fit:cover;
-    border-radius:13px;
+    border-radius:6px;
     display:block;
-    background:var(--sky-soft);
+    background:var(--panel-edge);
+    box-shadow: inset 0 0 12px rgba(0,0,0,0.5);
   }
   .card .remove{
     position:absolute; top:-9px; right:-9px;
     width:30px; height:30px;
     border-radius:50%;
-    border:2px solid white;
-    background:var(--navy);
-    color:white;
+    border:2px solid var(--bg-deep);
+    background: linear-gradient(165deg, #B5A9A2, var(--ash));
+    color:var(--bg-deep);
     font-size:0.85rem;
     line-height:26px;
     text-align:center;
     cursor:pointer;
     touch-action:manipulation;
-    box-shadow:0 2px 4px rgba(0,0,0,0.25);
+    box-shadow:0 2px 4px rgba(0,0,0,0.5);
   }
   .card .bomb-btn{
     width:100%;
     margin-top:0.4rem;
     border:none;
-    border-radius:999px;
+    border-radius:6px;
     padding:0.55rem 0;
-    font-family:'Baloo 2', sans-serif;
-    font-weight:700;
-    font-size:0.85rem;
-    background:var(--coral);
-    color:white;
+    font-family:'Oswald', sans-serif;
+    font-weight:600;
+    font-size:0.78rem;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    background: linear-gradient(180deg, #EA5561 0%, var(--red) 50%, #B32332 100%);
+    color:var(--ink);
     cursor:pointer;
     touch-action:manipulation;
-    box-shadow:0 3px 0 #A5222F;
+    box-shadow:0 3px 0 var(--red-dark), inset 0 1px 0 rgba(255,255,255,0.25);
   }
-  .card .bomb-btn:active{ transform:translateY(2px); box-shadow:0 1px 0 #A5222F; }
+  .card .bomb-btn:active{ transform:translateY(2px); box-shadow:0 1px 0 var(--red-dark); }
 
   .empty-hint{
     text-align:center;
     margin-top:1.1rem;
-    font-size:0.9rem;
-    font-weight:600;
-    color:var(--ink-soft);
+    font-size:0.85rem;
+    font-weight:500;
+    color:var(--ash);
+    text-transform:uppercase;
+    letter-spacing:0.06em;
   }
 
   footer{
     text-align:center;
     padding:1rem;
-    font-size:0.8rem;
-    font-weight:600;
-    color:var(--ink-soft);
+    font-size:0.75rem;
+    font-weight:500;
+    color:var(--panel-edge);
+    text-transform:uppercase;
+    letter-spacing:0.08em;
     position:relative; z-index:2;
   }
 
@@ -241,7 +280,7 @@
 
   @media (max-width:480px){
     .dropzone{ padding:1.8rem 1rem; }
-    .panel{ padding:1.4rem 1rem 1.8rem; border-radius:24px; }
+    .panel{ padding:1.4rem 1rem 1.8rem; border-radius:10px; }
     .card{ width:104px; }
     .gallery{ gap:0.7rem; }
   }
@@ -249,41 +288,44 @@
   @media (prefers-reduced-motion: reduce){
     .ambient span{ animation:none; }
     .dropzone, .card{ transition:none; }
+    .logo{ animation:none; }
   }
 </style>
 </head>
 <body>
 
 <div class="ambient" id="ambient"></div>
+<div class="vignette"></div>
+<div class="grain"></div>
 
 <header>
   <h1 class="logo" aria-label="Photo Bomb">
     <span aria-hidden="true">💣</span>
     <span class="sr-only">Photo Bomb</span>
   </h1>
-  <p class="tagline">drop a pic, blow it to pieces, watch it float away</p>
+  <p class="tagline">Drop a photo.</p>
 </header>
 
 <main>
   <div class="panel">
     <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Add photos to blow up">
       <span class="icon" aria-hidden="true">🖼️💥</span>
-      <p class="primary">Drop photos here or tap to choose</p>
-      <p class="secondary">Add as many as you like</p>
+      <p class="primary">Drop a photo here or tap to choose</p>
+      <p class="secondary">Load as many as you like</p>
       <input type="file" id="fileInput" accept="image/*" multiple>
     </div>
 
     <div class="toolbar">
       <button class="btn" id="explodeAllBtn" disabled>Blow Up All 🎉</button>
-      <button class="btn ghost" id="clearBtn" disabled>Clear 🧹</button>
+      <button class="btn ghost" id="clearBtn" disabled>Clear</button>
     </div>
 
     <div class="gallery" id="gallery"></div>
-    <p class="empty-hint" id="emptyHint">no photos yet — add one to get started</p>
+    <p class="empty-hint" id="emptyHint">no photos loaded — add one to get started</p>
   </div>
 </main>
 
-<footer>made for making a little mess 💙</footer>
+<footer>make a little mess</footer>
 
 <canvas id="fxCanvas"></canvas>
 
@@ -293,17 +335,18 @@
 
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  /* ---------- ambient polka dots ---------- */
+  /* ---------- ambient embers ---------- */
   const ambientEl = document.getElementById('ambient');
-  const dotColors = ['#79C6E8','#FFCB3D','#FF5D6C'];
+  const dotColors = ['#E8A33D','#D62839','#FF6A3D'];
   if(!reducedMotion){
     for(let i=0;i<14;i++){
       const s = document.createElement('span');
       const c = dotColors[i % dotColors.length];
       s.style.background = c;
+      s.style.boxShadow = `0 0 6px 1px ${c}`;
       s.style.left = Math.random()*100 + 'vw';
       s.style.top = Math.random()*100 + 'vh';
-      const size = 6 + Math.random()*10;
+      const size = 3 + Math.random()*5;
       s.style.width = size+'px';
       s.style.height = size+'px';
       s.style.animationDuration = (8 + Math.random()*6) + 's';
@@ -377,8 +420,8 @@
 
       const bombBtn = document.createElement('button');
       bombBtn.className = 'bomb-btn';
-      bombBtn.textContent = 'Blow it up 💣';
-      bombBtn.setAttribute('aria-label', 'Blow up this photo');
+      bombBtn.textContent = 'Detonate 💣';
+      bombBtn.setAttribute('aria-label', 'Detonate this photo');
       bombBtn.addEventListener('click', ev => { ev.stopPropagation(); ensureAudioContext(); explode(id); });
       card.appendChild(bombBtn);
 
@@ -450,11 +493,13 @@
 
   const fragments = [];   // organic shard pieces (~15s life)
   const sparks = [];      // short-lived confetti-dot burst
-  const bursts = [];      // POP! shockwave ring + text
+  const smoke = [];       // dark drifting smoke puffs
+  const flashes = [];     // instant bright flash at impact
+  const bursts = [];      // shockwave ring(s) + text
   let shake = 0;
 
   const FRAG_LIFETIME = 15000; // ms
-  const SPARK_COLORS = ['#79C6E8','#FFCB3D','#FF5D6C','#FFE08A','#9FDCF2'];
+  const SPARK_COLORS = ['#FF3B30','#E8A33D','#FFD37A','#8C1D24','#5B4A4E'];
 
   function rand(min, max){ return min + Math.random()*(max-min); }
   function clamp(v,min,max){ return Math.max(min, Math.min(max,v)); }
@@ -527,10 +572,13 @@
     playBoom();
     const shards = buildShards(img, rect);
     spawnFragmentsFromShards(shards, cx, cy);
-    spawnSparks(cx, cy, reducedMotion ? 26 : 80);
+    spawnSparks(cx, cy, reducedMotion ? 34 : 110);
     spawnShardSparks(shards, cx, cy);
-    bursts.push({ x:cx, y:cy, t:0, life:600 });
-    shake = reducedMotion ? 0 : 14;
+    spawnSmoke(cx, cy, reducedMotion ? 8 : 20);
+    flashes.push({ x:cx, y:cy, t:0, life:180 });
+    bursts.push({ x:cx, y:cy, t:0, life:650 });
+    bursts.push({ x:cx, y:cy, t:0, life:900, delayed:true });
+    shake = reducedMotion ? 0 : 26;
     if(!ticking) startTicker();
   }
 
@@ -678,14 +726,14 @@
       let dirX = pieceCx-cx, dirY = pieceCy-cy;
       const dist = Math.hypot(dirX,dirY) || 1;
       dirX /= dist; dirY /= dist;
-      const speed = rand(160, 420);
+      const speed = rand(240, 620);
       fragments.push({
         canvas: sh.canvas,
         x: sh.x, y: sh.y, w: sh.w, h: sh.h,
-        vx: dirX*speed + rand(-40,40),
-        vy: dirY*speed - rand(120,260),
+        vx: dirX*speed + rand(-70,70),
+        vy: dirY*speed - rand(160,340),
         rot: 0,
-        vrot: rand(-5,5),
+        vrot: rand(-9,9),
         born: now,
         alpha: 1
       });
@@ -714,6 +762,22 @@
         });
       }
     });
+  }
+
+  function spawnSmoke(cx, cy, count){
+    const now = performance.now();
+    for(let i=0;i<count;i++){
+      const angle = Math.random()*Math.PI*2;
+      const speed = rand(20, 90);
+      smoke.push({
+        x: cx + rand(-10,10), y: cy + rand(-10,10),
+        vx: Math.cos(angle)*speed,
+        vy: Math.sin(angle)*speed - rand(30,70),
+        size: rand(18, 42),
+        born: now,
+        life: rand(900, 1600)
+      });
+    }
   }
 
   function spawnSparks(cx, cy, count){
@@ -754,52 +818,59 @@
       if(!ac) return;
       const now = ac.currentTime;
 
-      // heavy low thump — the "body" of the blast
+      // heavy low thump — the "body" of the blast, with a little distortion for grit
       const thump = ac.createOscillator();
+      const thumpShaper = ac.createWaveShaper();
+      const curve = new Float32Array(256);
+      for(let i=0;i<256;i++){
+        const x = (i/255)*2-1;
+        curve[i] = Math.tanh(x*3.2);
+      }
+      thumpShaper.curve = curve;
       const thumpGain = ac.createGain();
       thump.type = 'sine';
-      thump.frequency.setValueAtTime(110, now);
-      thump.frequency.exponentialRampToValueAtTime(24, now + 0.45);
+      thump.frequency.setValueAtTime(130, now);
+      thump.frequency.exponentialRampToValueAtTime(20, now + 0.5);
       thumpGain.gain.setValueAtTime(0.0001, now);
-      thumpGain.gain.linearRampToValueAtTime(1.0, now + 0.015);
-      thumpGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
-      thump.connect(thumpGain).connect(ac.destination);
-      thump.start(now); thump.stop(now + 0.65);
+      thumpGain.gain.linearRampToValueAtTime(1.0, now + 0.012);
+      thumpGain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+      thump.connect(thumpShaper).connect(thumpGain).connect(ac.destination);
+      thump.start(now); thump.stop(now + 0.75);
 
       // sharp crack — a brief burst of high-passed noise right at impact
-      const crackSize = Math.floor(ac.sampleRate * 0.1);
+      const crackSize = Math.floor(ac.sampleRate * 0.14);
       const crackBuffer = ac.createBuffer(1, crackSize, ac.sampleRate);
       const crackData = crackBuffer.getChannelData(0);
-      for(let i=0;i<crackSize;i++) crackData[i] = (Math.random()*2-1) * Math.pow(1 - i/crackSize, 2);
+      for(let i=0;i<crackSize;i++) crackData[i] = (Math.random()*2-1) * Math.pow(1 - i/crackSize, 1.6);
       const crack = ac.createBufferSource();
       crack.buffer = crackBuffer;
       const crackFilter = ac.createBiquadFilter();
       crackFilter.type = 'highpass';
-      crackFilter.frequency.value = 900;
+      crackFilter.frequency.value = 700;
       const crackGain = ac.createGain();
-      crackGain.gain.setValueAtTime(0.6, now);
-      crackGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+      crackGain.gain.setValueAtTime(0.85, now);
+      crackGain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
       crack.connect(crackFilter).connect(crackGain).connect(ac.destination);
       crack.start(now);
 
       // low rumbling tail — filtered brown-ish noise that lingers after the hit
-      const rumbleSize = Math.floor(ac.sampleRate * 0.75);
+      const rumbleSize = Math.floor(ac.sampleRate * 1.0);
       const rumbleBuffer = ac.createBuffer(1, rumbleSize, ac.sampleRate);
       const rumbleData = rumbleBuffer.getChannelData(0);
       let last = 0;
       for(let i=0;i<rumbleSize;i++){
         const white = Math.random()*2-1;
-        last = (last + 0.025*white) / 1.025;
-        rumbleData[i] = last * 3.2 * Math.pow(1 - i/rumbleSize, 1.5);
+        last = (last + 0.03*white) / 1.03;
+        rumbleData[i] = last * 4.0 * Math.pow(1 - i/rumbleSize, 1.3);
       }
       const rumble = ac.createBufferSource();
       rumble.buffer = rumbleBuffer;
       const rumbleFilter = ac.createBiquadFilter();
       rumbleFilter.type = 'lowpass';
-      rumbleFilter.frequency.value = 260;
+      rumbleFilter.frequency.value = 220;
       const rumbleGain = ac.createGain();
-      rumbleGain.gain.setValueAtTime(0.7, now);
-      rumbleGain.gain.exponentialRampToValueAtTime(0.001, now + 0.75);
+      rumbleGain.gain.setValueAtTime(0.85, now);
+      rumbleGain.gain.exponentialRampToValueAtTime(0.001, now + 1.0);
       rumble.connect(rumbleFilter).connect(rumbleGain).connect(ac.destination);
       rumble.start(now);
 
@@ -841,10 +912,32 @@
     if(shake > 0.2){
       ox = rand(-shake, shake);
       oy = rand(-shake, shake);
-      shake *= 0.88;
+      shake *= 0.91;
     } else { shake = 0; }
     ctx.save();
     ctx.translate(ox, oy);
+
+    // smoke drifts up first, behind the flying debris
+    for(let i=smoke.length-1; i>=0; i--){
+      const sm = smoke[i];
+      const age = now-sm.born;
+      if(age > sm.life){ smoke.splice(i,1); continue; }
+      sm.vx *= (1 - 0.4*dt);
+      sm.vy *= (1 - 0.4*dt);
+      sm.x += sm.vx*dt;
+      sm.y += sm.vy*dt;
+      const p = age/sm.life;
+      const r = sm.size * (0.6 + p*0.9);
+      ctx.globalAlpha = Math.max(0, 0.35*(1-p));
+      const grad = ctx.createRadialGradient(sm.x, sm.y, 0, sm.x, sm.y, r);
+      grad.addColorStop(0, 'rgba(60,50,55,0.9)');
+      grad.addColorStop(1, 'rgba(60,50,55,0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(sm.x, sm.y, r, 0, Math.PI*2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
 
     const gravity = 420;
     for(let i=fragments.length-1; i>=0; i--){
@@ -897,26 +990,59 @@
       if(b.t > b.life){ bursts.splice(i,1); continue; }
       const p = clamp(b.t/b.life, 0, 1);
       ctx.save();
-      ctx.globalAlpha = 1-p;
-      ctx.strokeStyle = '#FF5D6C';
-      ctx.lineWidth = Math.max(0.5, 6*(1-p)+1);
-      ctx.beginPath();
-      ctx.arc(b.x, b.y, Math.max(0.5, 20+p*120), 0, Math.PI*2);
-      ctx.stroke();
 
-      ctx.font = "700 " + (28+p*10) + "px 'Baloo 2', sans-serif";
-      ctx.fillStyle = '#22384A';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.translate(b.x, b.y-40-p*20);
-      ctx.rotate((p-0.5)*0.15);
-      ctx.fillText('POP!', 0, 0);
+      if(b.delayed){
+        // slower grey dust/aftershock ring
+        ctx.globalAlpha = 0.5*(1-p);
+        ctx.strokeStyle = '#5B4A4E';
+        ctx.lineWidth = Math.max(0.5, 10*(1-p)+1);
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, Math.max(0.5, 40+p*300), 0, Math.PI*2);
+        ctx.stroke();
+      } else {
+        ctx.globalAlpha = 1-p;
+        ctx.strokeStyle = '#FF3B30';
+        ctx.lineWidth = Math.max(0.5, 8*(1-p)+1.5);
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, Math.max(0.5, 24+p*220), 0, Math.PI*2);
+        ctx.stroke();
+
+        ctx.font = (30+p*14) + "px 'Bungee', sans-serif";
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.translate(b.x, b.y-40-p*24);
+        ctx.rotate((p-0.5)*0.15);
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = 'rgba(0,0,0,0.7)';
+        ctx.strokeText('BOOM!', 0, 0);
+        ctx.fillStyle = '#E8A33D';
+        ctx.fillText('BOOM!', 0, 0);
+      }
       ctx.restore();
     }
 
+    // bright flash right at the moment of impact
+    ctx.globalCompositeOperation = 'lighter';
+    for(let i=flashes.length-1; i>=0; i--){
+      const fl = flashes[i];
+      fl.t += dt*1000;
+      if(fl.t > fl.life){ flashes.splice(i,1); continue; }
+      const p = clamp(fl.t/fl.life, 0, 1);
+      const r = 40 + p*260;
+      const grad = ctx.createRadialGradient(fl.x, fl.y, 0, fl.x, fl.y, r);
+      grad.addColorStop(0, `rgba(255,255,255,${0.85*(1-p)})`);
+      grad.addColorStop(0.4, `rgba(255,203,61,${0.5*(1-p)})`);
+      grad.addColorStop(1, 'rgba(255,203,61,0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(fl.x, fl.y, r, 0, Math.PI*2);
+      ctx.fill();
+    }
+    ctx.globalCompositeOperation = 'source-over';
+
     ctx.restore();
 
-    if(fragments.length || sparks.length || bursts.length){
+    if(fragments.length || sparks.length || smoke.length || flashes.length || bursts.length){
       requestAnimationFrame(tick);
     } else {
       ticking = false;
