@@ -379,7 +379,7 @@
       bombBtn.className = 'bomb-btn';
       bombBtn.textContent = 'Blow it up 💣';
       bombBtn.setAttribute('aria-label', 'Blow up this photo');
-      bombBtn.addEventListener('click', ev => { ev.stopPropagation(); explode(id); });
+      bombBtn.addEventListener('click', ev => { ev.stopPropagation(); ensureAudioContext(); explode(id); });
       card.appendChild(bombBtn);
 
       gallery.appendChild(card);
@@ -401,6 +401,7 @@
   });
 
   explodeAllBtn.addEventListener('click', () => {
+    ensureAudioContext();
     const ids = Array.from(images.keys());
     const n = ids.length;
     if(n === 0) return;
@@ -733,10 +734,24 @@
     }
   }
 
+  let sharedAudioCtx = null;
+  function ensureAudioContext(){
+    try{
+      if(!sharedAudioCtx){
+        const AC = window.AudioContext || window.webkitAudioContext;
+        sharedAudioCtx = new AC();
+      }
+      if(sharedAudioCtx.state === 'suspended'){
+        sharedAudioCtx.resume();
+      }
+    }catch(e){ /* audio unavailable */ }
+    return sharedAudioCtx;
+  }
+
   function playBoom(){
     try{
-      const AC = window.AudioContext || window.webkitAudioContext;
-      const ac = new AC();
+      const ac = ensureAudioContext();
+      if(!ac) return;
       const now = ac.currentTime;
 
       // heavy low thump — the "body" of the blast
@@ -788,7 +803,6 @@
       rumble.connect(rumbleFilter).connect(rumbleGain).connect(ac.destination);
       rumble.start(now);
 
-      setTimeout(() => ac.close(), 1000);
     }catch(e){ /* audio unavailable, skip silently */ }
   }
 
