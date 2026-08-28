@@ -405,12 +405,16 @@
     const n = ids.length;
     if(n === 0) return;
 
-    if(n === 1){
-      explode(ids[0]);
+    const isPhoneLayout = window.matchMedia('(max-width: 640px)').matches;
+
+    if(n === 1 || isPhoneLayout){
+      // small screen: show and pop each photo fully centered, one after another
+      const cycle = TRANSITION_MS + REVEAL_HOLD_MS;
+      ids.forEach((id, i) => setTimeout(() => explode(id), i * cycle));
       return;
     }
 
-    // lay out n spots across the viewport (avoiding the header band) so photos don't overlap
+    // wider screens: lay out n spots across the viewport (avoiding the header band) so photos don't overlap
     const cols = Math.max(1, Math.min(n, Math.round(Math.sqrt(n * (window.innerWidth / window.innerHeight)))));
     const rows = Math.ceil(n / cols);
     const bandTop = window.innerHeight * 0.14;
@@ -456,7 +460,7 @@
 
   /* ---- step 1: animate the photo to its target spot on screen ---- */
   const TRANSITION_MS = 380;
-  const REVEAL_HOLD_MS = 1800; // how long the photo sits fully visible before it pops
+  const REVEAL_HOLD_MS = 1300; // how long the photo sits fully visible before it pops
 
   function explode(id, opts){
     opts = opts || {};
@@ -735,32 +739,56 @@
       const ac = new AC();
       const now = ac.currentTime;
 
-      const osc = ac.createOscillator();
-      const oscGain = ac.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(160, now);
-      osc.frequency.exponentialRampToValueAtTime(40, now + 0.28);
-      oscGain.gain.setValueAtTime(0.5, now);
-      oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-      osc.connect(oscGain).connect(ac.destination);
-      osc.start(now); osc.stop(now + 0.32);
+      // heavy low thump — the "body" of the blast
+      const thump = ac.createOscillator();
+      const thumpGain = ac.createGain();
+      thump.type = 'sine';
+      thump.frequency.setValueAtTime(110, now);
+      thump.frequency.exponentialRampToValueAtTime(24, now + 0.45);
+      thumpGain.gain.setValueAtTime(0.0001, now);
+      thumpGain.gain.linearRampToValueAtTime(1.0, now + 0.015);
+      thumpGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+      thump.connect(thumpGain).connect(ac.destination);
+      thump.start(now); thump.stop(now + 0.65);
 
-      const bufferSize = ac.sampleRate * 0.25;
-      const buffer = ac.createBuffer(1, bufferSize, ac.sampleRate);
-      const data = buffer.getChannelData(0);
-      for(let i=0;i<bufferSize;i++) data[i] = (Math.random()*2-1) * (1 - i/bufferSize);
-      const noise = ac.createBufferSource();
-      noise.buffer = buffer;
-      const noiseFilter = ac.createBiquadFilter();
-      noiseFilter.type = 'highpass';
-      noiseFilter.frequency.value = 1200;
-      const noiseGain = ac.createGain();
-      noiseGain.gain.setValueAtTime(0.35, now);
-      noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
-      noise.connect(noiseFilter).connect(noiseGain).connect(ac.destination);
-      noise.start(now);
+      // sharp crack — a brief burst of high-passed noise right at impact
+      const crackSize = Math.floor(ac.sampleRate * 0.1);
+      const crackBuffer = ac.createBuffer(1, crackSize, ac.sampleRate);
+      const crackData = crackBuffer.getChannelData(0);
+      for(let i=0;i<crackSize;i++) crackData[i] = (Math.random()*2-1) * Math.pow(1 - i/crackSize, 2);
+      const crack = ac.createBufferSource();
+      crack.buffer = crackBuffer;
+      const crackFilter = ac.createBiquadFilter();
+      crackFilter.type = 'highpass';
+      crackFilter.frequency.value = 900;
+      const crackGain = ac.createGain();
+      crackGain.gain.setValueAtTime(0.6, now);
+      crackGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+      crack.connect(crackFilter).connect(crackGain).connect(ac.destination);
+      crack.start(now);
 
-      setTimeout(() => ac.close(), 500);
+      // low rumbling tail — filtered brown-ish noise that lingers after the hit
+      const rumbleSize = Math.floor(ac.sampleRate * 0.75);
+      const rumbleBuffer = ac.createBuffer(1, rumbleSize, ac.sampleRate);
+      const rumbleData = rumbleBuffer.getChannelData(0);
+      let last = 0;
+      for(let i=0;i<rumbleSize;i++){
+        const white = Math.random()*2-1;
+        last = (last + 0.025*white) / 1.025;
+        rumbleData[i] = last * 3.2 * Math.pow(1 - i/rumbleSize, 1.5);
+      }
+      const rumble = ac.createBufferSource();
+      rumble.buffer = rumbleBuffer;
+      const rumbleFilter = ac.createBiquadFilter();
+      rumbleFilter.type = 'lowpass';
+      rumbleFilter.frequency.value = 260;
+      const rumbleGain = ac.createGain();
+      rumbleGain.gain.setValueAtTime(0.7, now);
+      rumbleGain.gain.exponentialRampToValueAtTime(0.001, now + 0.75);
+      rumble.connect(rumbleFilter).connect(rumbleGain).connect(ac.destination);
+      rumble.start(now);
+
+      setTimeout(() => ac.close(), 1000);
     }catch(e){ /* audio unavailable, skip silently */ }
   }
 
