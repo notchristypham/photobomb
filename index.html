@@ -455,6 +455,9 @@
   function clamp(v,min,max){ return Math.max(min, Math.min(max,v)); }
 
   /* ---- step 1: animate the photo to its target spot on screen ---- */
+  const TRANSITION_MS = 380;
+  const REVEAL_HOLD_MS = 950; // how long the photo sits fully visible before it pops
+
   function explode(id, opts){
     opts = opts || {};
     const rec = images.get(id);
@@ -465,8 +468,8 @@
 
     const startRect = rec.imgEl.getBoundingClientRect();
     const nw = rec.img.naturalWidth, nh = rec.img.naturalHeight;
-    const maxW = opts.maxW || Math.min(window.innerWidth*0.72, 440);
-    const maxH = opts.maxH || Math.min(window.innerHeight*0.5, 440);
+    const maxW = opts.maxW || Math.min(window.innerWidth*0.88, 520);
+    const maxH = opts.maxH || Math.min(window.innerHeight*0.62, 520);
     const scale = Math.min(maxW/nw, maxH/nh);
     const targetW = nw*scale, targetH = nh*scale;
     const centerX = opts.centerX != null ? opts.centerX : window.innerWidth/2;
@@ -476,11 +479,6 @@
       top: centerY - targetH/2,
       width: targetW, height: targetH
     };
-
-    if(reducedMotion){
-      doExplosion(rec.img, targetRect);
-      return;
-    }
 
     const clone = document.createElement('img');
     clone.src = rec.dataUrl;
@@ -494,24 +492,28 @@
     clone.style.zIndex = '60';
     clone.style.boxShadow = '0 10px 28px rgba(34,56,74,0.35)';
     clone.style.transformOrigin = '0 0';
-    clone.style.transform = 'translate(0px, 0px) scale(1, 1)';
     clone.style.willChange = 'transform';
-    clone.style.transition = 'transform .38s cubic-bezier(.22,.9,.28,1.1)';
     document.body.appendChild(clone);
 
     const dx = targetRect.left - startRect.left;
     const dy = targetRect.top - startRect.top;
     const sx = targetRect.width / startRect.width;
     const sy = targetRect.height / startRect.height;
+    const finalTransform = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`;
 
-    requestAnimationFrame(() => {
-      clone.style.transform = `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`;
-    });
+    if(reducedMotion){
+      clone.style.transform = finalTransform;
+    } else {
+      clone.style.transform = 'translate(0px, 0px) scale(1, 1)';
+      clone.style.transition = `transform ${TRANSITION_MS}ms cubic-bezier(.22,.9,.28,1.1)`;
+      requestAnimationFrame(() => { clone.style.transform = finalTransform; });
+    }
 
+    const totalDelay = reducedMotion ? REVEAL_HOLD_MS : (TRANSITION_MS + REVEAL_HOLD_MS);
     setTimeout(() => {
       clone.remove();
       doExplosion(rec.img, targetRect);
-    }, 400);
+    }, totalDelay);
   }
 
   function doExplosion(img, rect){
